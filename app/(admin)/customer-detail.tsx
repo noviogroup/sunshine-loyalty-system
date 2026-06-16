@@ -1,25 +1,23 @@
 import React, { useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  SafeAreaView,
-  StyleSheet,
-  Modal,
-} from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, StyleSheet, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, borderRadius } from '../../src/theme';
 import { Card, Badge, Button, TransactionItem, Input } from '../../src/components';
 import { useDemoState } from '../../src/context/DemoStateContext';
 
+type ActionModal = 'points' | 'note' | 'offer' | null;
+
 export default function CustomerDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { customers, transactions, adjustCustomerPoints } = useDemoState();
-  const [modalVisible, setModalVisible] = useState(false);
+  const [actionModal, setActionModal] = useState<ActionModal>(null);
   const [pointsValue, setPointsValue] = useState('250');
   const [reason, setReason] = useState('Customer service goodwill adjustment');
+  const [note, setNote] = useState('Customer asked about combining Finance and Insurance rewards. Follow up after executive demo.');
+  const [offerMessage, setOfferMessage] = useState('Invite customer to review available Sunshine Insurance premium credit offer.');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const customer = customers.find((item) => item.id === id) ?? customers[0];
 
@@ -47,27 +45,43 @@ export default function CustomerDetailScreen() {
     .join('')
     .toUpperCase();
 
+  const closeModal = () => setActionModal(null);
+
   const handleAdjustPoints = () => {
     const points = Number(pointsValue);
     if (!Number.isFinite(points) || points === 0) return;
     adjustCustomerPoints(customer.id, points, reason);
-    setModalVisible(false);
+    setSuccessMessage(`${points > 0 ? '+' : ''}${points} points adjustment saved for ${customer.name}.`);
+    closeModal();
+  };
+
+  const handleSaveNote = () => {
+    if (!note.trim()) return;
+    setSuccessMessage(`Internal note saved for ${customer.name}.`);
+    closeModal();
+  };
+
+  const handleSendOffer = () => {
+    if (!offerMessage.trim()) return;
+    setSuccessMessage(`Demo offer queued for ${customer.name}.`);
+    closeModal();
   };
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
         <Button title="Back to Customers" onPress={() => router.push('/(admin)/customers')} variant="ghost" />
+
+        {successMessage ? (
+          <View style={styles.successBanner}>
+            <Ionicons name="checkmark-circle" size={18} color={colors.success} />
+            <Text style={styles.successText}>{successMessage}</Text>
+          </View>
+        ) : null}
 
         <Card style={styles.profileCard}>
           <View style={styles.profileHeader}>
-            <View style={[styles.avatar, { backgroundColor: tierColor }]}>
-              <Text style={styles.avatarText}>{initials}</Text>
-            </View>
+            <View style={[styles.avatar, { backgroundColor: tierColor }]}> <Text style={styles.avatarText}>{initials}</Text> </View>
             <View style={styles.profileInfo}>
               <Text style={styles.customerName}>{customer.name}</Text>
               <Badge label={customer.tier} variant={customer.tier === 'Gold' ? 'warning' : customer.tier === 'Platinum' ? 'success' : 'default'} size="sm" />
@@ -75,38 +89,22 @@ export default function CustomerDetailScreen() {
           </View>
 
           <View style={styles.detailsGrid}>
-            <View style={styles.detailRow}>
-              <Ionicons name="mail-outline" size={18} color={colors.mediumGray} />
-              <Text style={styles.detailText}>{customer.email}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Ionicons name="call-outline" size={18} color={colors.mediumGray} />
-              <Text style={styles.detailText}>{customer.phone}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Ionicons name="calendar-outline" size={18} color={colors.mediumGray} />
-              <Text style={styles.detailText}>Joined {customer.joinDate}</Text>
-            </View>
+            <View style={styles.detailRow}><Ionicons name="mail-outline" size={18} color={colors.mediumGray} /><Text style={styles.detailText}>{customer.email}</Text></View>
+            <View style={styles.detailRow}><Ionicons name="call-outline" size={18} color={colors.mediumGray} /><Text style={styles.detailText}>{customer.phone}</Text></View>
+            <View style={styles.detailRow}><Ionicons name="calendar-outline" size={18} color={colors.mediumGray} /><Text style={styles.detailText}>Joined {customer.joinDate}</Text></View>
           </View>
         </Card>
 
         <Card style={styles.pointsCard}>
           <View style={styles.pointsIconRow}>
-            <View style={styles.pointsIconContainer}>
-              <Ionicons name="star" size={24} color={colors.primary} />
-            </View>
+            <View style={styles.pointsIconContainer}><Ionicons name="star" size={24} color={colors.primary} /></View>
             <Text style={styles.pointsLabel}>Points Balance</Text>
           </View>
           <Text style={styles.pointsValue}>{customer.points.toLocaleString()}</Text>
-          {customer.nextTier && (
-            <Text style={styles.nextTierText}>{customer.pointsToNextTier.toLocaleString()} points to {customer.nextTier}</Text>
-          )}
+          {customer.nextTier && <Text style={styles.nextTierText}>{customer.pointsToNextTier.toLocaleString()} points to {customer.nextTier}</Text>}
         </Card>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Linked Accounts</Text>
-        </View>
-
+        <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Linked Accounts</Text></View>
         {customer.linkedAccounts.map((account) => (
           <Card key={account.accountNumber} style={styles.linkedCard}>
             <View style={styles.linkedRow}>
@@ -120,66 +118,56 @@ export default function CustomerDetailScreen() {
           </Card>
         ))}
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Transactions</Text>
-        </View>
-
+        <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Recent Transactions</Text></View>
         <View style={styles.transactionsCard}>
           {customerTransactions.length > 0 ? (
             customerTransactions.map((txn, index) => (
               <View key={txn.id}>
-                <TransactionItem
-                  type={txn.type === 'adjustment' ? 'earned' : txn.type}
-                  points={Math.abs(txn.points)}
-                  description={txn.description}
-                  companyName={txn.companyName}
-                  date={txn.date}
-                  status={txn.type === 'adjustment' ? 'earned' : txn.type}
-                />
+                <TransactionItem type={txn.type === 'adjustment' ? 'earned' : txn.type} points={Math.abs(txn.points)} description={txn.description} companyName={txn.companyName} date={txn.date} status={txn.type === 'adjustment' ? 'earned' : txn.type} />
                 {index < customerTransactions.length - 1 && <View style={styles.divider} />}
               </View>
             ))
           ) : (
-            <View style={styles.emptyTransactions}>
-              <Text style={styles.emptyText}>No transactions found</Text>
-            </View>
+            <View style={styles.emptyTransactions}><Text style={styles.emptyText}>No transactions found</Text></View>
           )}
         </View>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Actions</Text>
-        </View>
-
+        <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Actions</Text></View>
         <View style={styles.actionsContainer}>
-          <Button title="Adjust Points" onPress={() => setModalVisible(true)} variant="primary" fullWidth />
-          <Button title="Add Note" onPress={() => setModalVisible(true)} variant="outline" fullWidth />
-          <Button title="Send Offer" onPress={() => setModalVisible(true)} variant="secondary" fullWidth />
+          <Button title="Adjust Points" onPress={() => setActionModal('points')} variant="primary" fullWidth />
+          <Button title="Add Note" onPress={() => setActionModal('note')} variant="outline" fullWidth />
+          <Button title="Send Offer" onPress={() => setActionModal('offer')} variant="secondary" fullWidth />
         </View>
       </ScrollView>
 
-      <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
+      <Modal visible={!!actionModal} transparent animationType="fade" onRequestClose={closeModal}>
         <View style={styles.modalOverlay}>
           <Card style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Adjust Points</Text>
-            <Text style={styles.modalSubtitle}>Every adjustment is added to the demo activity ledger.</Text>
-            <Input
-              label="Points adjustment"
-              value={pointsValue}
-              onChangeText={setPointsValue}
-              placeholder="Example: 250 or -100"
-              keyboardType="numeric"
-              leftIcon="star-outline"
-            />
-            <Input
-              label="Reason"
-              value={reason}
-              onChangeText={setReason}
-              placeholder="Required reason for audit trail"
-              leftIcon="document-text-outline"
-            />
-            <Button title="Save Adjustment" onPress={handleAdjustPoints} fullWidth />
+            {actionModal === 'points' ? (
+              <>
+                <Text style={styles.modalTitle}>Adjust Points</Text>
+                <Text style={styles.modalSubtitle}>Every adjustment is added to the demo activity ledger.</Text>
+                <Input label="Points adjustment" value={pointsValue} onChangeText={setPointsValue} placeholder="Example: 250 or -100" keyboardType="numeric" leftIcon="star-outline" />
+                <Input label="Reason" value={reason} onChangeText={setReason} placeholder="Required reason for audit trail" leftIcon="document-text-outline" />
+                <Button title="Save Adjustment" onPress={handleAdjustPoints} fullWidth />
+              </>
+            ) : actionModal === 'note' ? (
+              <>
+                <Text style={styles.modalTitle}>Add Internal Note</Text>
+                <Text style={styles.modalSubtitle}>Demo-only note for staff follow-up. Production should save this to an audit/activity table.</Text>
+                <Input label="Note" value={note} onChangeText={setNote} placeholder="Enter internal note" leftIcon="document-text-outline" />
+                <Button title="Save Note" onPress={handleSaveNote} fullWidth />
+              </>
+            ) : (
+              <>
+                <Text style={styles.modalTitle}>Send Offer</Text>
+                <Text style={styles.modalSubtitle}>Demo-only offer queue. Production should send through email, SMS, or in-app notification.</Text>
+                <Input label="Offer message" value={offerMessage} onChangeText={setOfferMessage} placeholder="Offer message" leftIcon="gift-outline" />
+                <Button title="Queue Offer" onPress={handleSendOffer} fullWidth />
+              </>
+            )}
             <View style={styles.modalGap} />
-            <Button title="Cancel" onPress={() => setModalVisible(false)} variant="outline" fullWidth />
+            <Button title="Cancel" onPress={closeModal} variant="outline" fullWidth />
           </Card>
         </View>
       </Modal>
@@ -191,6 +179,8 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.lightGray },
   container: { flex: 1 },
   contentContainer: { padding: spacing.md, paddingBottom: spacing.xxl },
+  successBanner: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.successLight, borderRadius: borderRadius.lg, padding: spacing.md, marginBottom: spacing.md, borderWidth: 1, borderColor: 'rgba(16,185,129,0.25)' },
+  successText: { ...typography.captionBold, color: colors.success, flex: 1 },
   profileCard: { padding: spacing.lg, marginBottom: spacing.md },
   profileHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
   avatar: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
