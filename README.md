@@ -27,8 +27,22 @@ src/theme/spacing.ts
 src/components/BrandMark.tsx
 src/components/Button.tsx
 src/components/Card.tsx
+src/components/DemoQr.tsx
 app/(admin)/_layout.tsx
 ```
+
+## QHC-Inspired Loyalty Flow Added
+
+The demo now includes several concepts adapted from the QHC Loyalty setup:
+
+- Customer membership card screen
+- QR-style membership visual
+- Redemption code ledger
+- Admin redemption verification screen
+- Staff-style mark-used / void actions
+- Shared in-session demo state for redemptions and transactions
+
+These are still local demo features. They are intended to show the workflow before moving to a production Supabase implementation.
 
 ## Demo Areas
 
@@ -40,10 +54,11 @@ Main demo path:
 2. Select **Start Customer Demo**.
 3. Sign in with the seeded Alicia Rolle demo account.
 4. View points balance, membership tier, linked companies, and recent activity.
-5. Open **Offers**.
-6. Redeem an available reward.
-7. View the redemption success screen.
-8. Open **Activity** to confirm the new redemption appears.
+5. Open **Card** to view the Sunshine Rewards member card.
+6. Open **Offers**.
+7. Redeem an available reward.
+8. View the redemption success screen and code.
+9. Open **Activity** to confirm the new redemption appears.
 
 ### Admin Portal
 
@@ -55,6 +70,8 @@ Main demo path:
 4. Search or select a customer.
 5. View linked accounts, points balance, and recent transactions.
 6. Use **Adjust Points** to demonstrate an audited admin adjustment.
+7. Open **Redemptions**.
+8. Search the issued code and mark it used or voided.
 
 ### Executive Dashboard
 
@@ -73,6 +90,7 @@ The app currently uses seeded local data for:
 - Linked accounts
 - Rewards
 - Transactions
+- Redemptions
 - Campaigns
 - Admin KPIs
 - Executive KPIs
@@ -83,7 +101,7 @@ The app-wide demo state is managed in:
 src/context/DemoStateContext.tsx
 ```
 
-Reward redemptions and admin point adjustments are added to the local demo transaction ledger during the active app session.
+Reward redemptions, redemption codes, staff verification status, and admin point adjustments are added to the local demo ledger during the active app session.
 
 ## Install and Run
 
@@ -129,13 +147,31 @@ The following are intentionally mocked or not yet production-ready:
 - Real authentication
 - Password reset email
 - SMS or email verification
+- Real QR code generation package
 - Real Sunshine system integrations
 - Real finance or insurance account lookup
 - Real payment processing
 - Production database persistence
+- Server-side point issuance / redemption validation
 - Advanced fraud controls
 - Full campaign rules engine
 - Real reporting exports
+
+## Production Direction
+
+For a production Sunshine MVP, the QHC Loyalty architecture should be adapted into a multi-company financial-services model:
+
+- Supabase Auth
+- Profiles table
+- Companies table
+- Linked accounts table
+- Points ledger table
+- Rewards table
+- Redemptions table
+- Campaigns/promotions table
+- Admin/staff roles
+- RLS policies
+- Supabase RPC or Edge Functions for point issuance, redemption, and admin adjustment
 
 ## Important Demo Scope Rule
 
@@ -144,8 +180,9 @@ Do not add Focal, Sun Oil, Shell, gas station, petroleum, fuel rewards, pump, or
 ## Recommended Next Improvements
 
 1. Add real Sunshine Finance and Sunshine Insurance logo assets.
-2. Add a final production app icon and splash screen using approved brand assets.
-3. Add an onboarding/account-linking screen before the customer home page.
-4. Refine admin dashboard cards and tables for large desktop presentation screens.
-5. Add basic persistence for demo changes between refreshes.
-6. Add QA script for the full 5-7 minute meeting walkthrough.
+2. Replace the demo QR visual with real QR rendering when moving from demo to MVP.
+3. Add a final production app icon and splash screen using approved brand assets.
+4. Add an onboarding/account-linking screen before the customer home page.
+5. Refine admin dashboard cards and tables for large desktop presentation screens.
+6. Add basic persistence for demo changes between refreshes.
+7. Add QA script for the full 5-7 minute meeting walkthrough.
