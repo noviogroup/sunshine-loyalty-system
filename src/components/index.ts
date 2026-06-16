@@ -9,3 +9,4 @@ export { default as TransactionItem } from './TransactionItem';
 export { default as FilterChip } from './FilterChip';
 export { default as ProgressBar } from './ProgressBar';
 export { default as BrandMark } from './BrandMark';
+export { default as DemoQr } from './DemoQr';
