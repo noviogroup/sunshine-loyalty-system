@@ -1,8 +1,5 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
-import {
-  customers as seededCustomers,
-  transactions as seededTransactions,
-} from '../data/demo';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { supabase } from '../lib/supabase';
 import type { Customer, Redemption, RedemptionStatus, Reward, Transaction } from '../types';
 
 const DEMO_CUSTOMER_ID = 'c1';
@@ -12,9 +9,10 @@ interface DemoStateContextValue {
   transactions: Transaction[];
   redemptions: Redemption[];
   demoCustomer: Customer;
-  redeemReward: (reward: Reward) => string;
-  updateRedemptionStatus: (redemptionId: string, status: RedemptionStatus, note?: string) => void;
-  adjustCustomerPoints: (customerId: string, points: number, reason: string) => void;
+  loading: boolean;
+  redeemReward: (reward: Reward) => Promise<string>;
+  updateRedemptionStatus: (redemptionId: string, status: RedemptionStatus, note?: string) => Promise<void>;
+  adjustCustomerPoints: (customerId: string, points: number, reason: string) => Promise<void>;
   resetDemo: () => void;
 }
 
@@ -38,25 +36,112 @@ function buildReference(prefix: string): string {
   return `${prefix}-${new Date().getFullYear()}-${number}`;
 }
 
+// Map snake_case DB rows to camelCase TS types
+function rowToCustomer(row: Record<string, unknown>, linkedAccounts: Array<{
+  companyId: string; companyName: string; accountNumber: string; linkedDate: string;
+}>): Customer {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    email: row.email as string,
+    phone: row.phone as string,
+    tier: row.tier as Customer['tier'],
+    points: row.points as number,
+    pointsToNextTier: row.points_to_next_tier as number,
+    nextTier: (row.next_tier ?? null) as Customer['nextTier'],
+    joinDate: row.join_date as string,
+    linkedAccounts,
+  };
+}
+
+function rowToTransaction(row: Record<string, unknown>): Transaction {
+  return {
+    id: row.id as string,
+    customerId: row.customer_id as string,
+    companyId: row.company_id as string,
+    companyName: row.company_name as string,
+    type: row.type as Transaction['type'],
+    points: row.points as number,
+    description: row.description as string,
+    reference: row.reference as string,
+    date: row.date as string,
+    status: row.status as Transaction['status'],
+  };
+}
+
+function rowToRedemption(row: Record<string, unknown>): Redemption {
+  return {
+    id: row.id as string,
+    customerId: row.customer_id as string,
+    customerName: row.customer_name as string,
+    rewardId: row.reward_id as string,
+    rewardTitle: row.reward_title as string,
+    companyId: row.company_id as string,
+    companyName: row.company_name as string,
+    pointsUsed: row.points_used as number,
+    code: row.code as string,
+    status: row.status as Redemption['status'],
+    issuedAt: row.issued_at as string,
+    usedAt: (row.used_at ?? undefined) as string | undefined,
+    voidReason: (row.void_reason ?? undefined) as string | undefined,
+  };
+}
+
 export function DemoStateProvider({ children }: { children: React.ReactNode }) {
-  const [customers, setCustomers] = useState<Customer[]>(seededCustomers);
-  const [transactions, setTransactions] = useState<Transaction[]>(seededTransactions);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadAll = useCallback(async () => {
+    setLoading(true);
+    const [customersRes, linkedRes, transactionsRes, redemptionsRes] = await Promise.all([
+      supabase.from('customers').select('*').order('join_date'),
+      supabase.from('linked_accounts').select('*'),
+      supabase.from('transactions').select('*').order('date', { ascending: false }),
+      supabase.from('redemptions').select('*').order('issued_at', { ascending: false }),
+    ]);
+
+    const linkedRows = linkedRes.data ?? [];
+
+    const loadedCustomers: Customer[] = (customersRes.data ?? []).map((row) => {
+      const accts = linkedRows
+        .filter((la) => la.customer_id === row.id)
+        .map((la) => ({
+          companyId: la.company_id as string,
+          companyName: la.company_name as string,
+          accountNumber: la.account_number as string,
+          linkedDate: la.linked_date as string,
+        }));
+      return rowToCustomer(row as Record<string, unknown>, accts);
+    });
+
+    setCustomers(loadedCustomers);
+    setTransactions((transactionsRes.data ?? []).map((r) => rowToTransaction(r as Record<string, unknown>)));
+    setRedemptions((redemptionsRes.data ?? []).map((r) => rowToRedemption(r as Record<string, unknown>)));
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadAll();
+  }, [loadAll]);
 
   const demoCustomer = useMemo(
-    () => customers.find((customer) => customer.id === DEMO_CUSTOMER_ID) ?? customers[0],
+    () => customers.find((c) => c.id === DEMO_CUSTOMER_ID) ?? customers[0],
     [customers]
   );
 
-  const redeemReward = (reward: Reward) => {
+  const redeemReward = async (reward: Reward): Promise<string> => {
     const code = buildRedemptionCode(reward.companyName);
     const issuedAt = new Date().toISOString();
+    const txId = `rdm-${Date.now()}`;
+    const rdmId = `redemption-${Date.now()}`;
 
-    const transaction: Transaction = {
-      id: `rdm-${Date.now()}`,
-      customerId: demoCustomer.id,
-      companyId: reward.companyId,
-      companyName: reward.companyName,
+    const txRow = {
+      id: txId,
+      customer_id: demoCustomer.id,
+      company_id: reward.companyId,
+      company_name: reward.companyName,
       type: 'redeemed',
       points: -reward.pointsCost,
       description: `Redeemed: ${reward.title}`,
@@ -65,55 +150,68 @@ export function DemoStateProvider({ children }: { children: React.ReactNode }) {
       status: 'completed',
     };
 
-    const redemption: Redemption = {
-      id: `redemption-${Date.now()}`,
-      customerId: demoCustomer.id,
-      customerName: demoCustomer.name,
-      rewardId: reward.id,
-      rewardTitle: reward.title,
-      companyId: reward.companyId,
-      companyName: reward.companyName,
-      pointsUsed: reward.pointsCost,
+    const rdmRow = {
+      id: rdmId,
+      customer_id: demoCustomer.id,
+      customer_name: demoCustomer.name,
+      reward_id: reward.id,
+      reward_title: reward.title,
+      company_id: reward.companyId,
+      company_name: reward.companyName,
+      points_used: reward.pointsCost,
       code,
       status: 'issued',
-      issuedAt,
+      issued_at: issuedAt,
     };
 
-    setCustomers((currentCustomers) =>
-      currentCustomers.map((customer) =>
-        customer.id === demoCustomer.id ? updateCustomerPoints(customer, -reward.pointsCost) : customer
-      )
+    const newPoints = Math.max(0, demoCustomer.points - reward.pointsCost);
+
+    await Promise.all([
+      supabase.from('transactions').insert(txRow),
+      supabase.from('redemptions').insert(rdmRow),
+      supabase.from('customers').update({ points: newPoints }).eq('id', demoCustomer.id),
+    ]);
+
+    setCustomers((prev) =>
+      prev.map((c) => (c.id === demoCustomer.id ? updateCustomerPoints(c, -reward.pointsCost) : c))
     );
-    setTransactions((currentTransactions) => [transaction, ...currentTransactions]);
-    setRedemptions((currentRedemptions) => [redemption, ...currentRedemptions]);
+    setTransactions((prev) => [rowToTransaction(txRow as unknown as Record<string, unknown>), ...prev]);
+    setRedemptions((prev) => [rowToRedemption(rdmRow as unknown as Record<string, unknown>), ...prev]);
 
     return code;
   };
 
-  const updateRedemptionStatus = (redemptionId: string, status: RedemptionStatus, note?: string) => {
-    setRedemptions((currentRedemptions) =>
-      currentRedemptions.map((redemption) => {
-        if (redemption.id !== redemptionId) return redemption;
+  const updateRedemptionStatus = async (redemptionId: string, status: RedemptionStatus, note?: string) => {
+    const patch: Record<string, unknown> = { status };
+    if (status === 'used') patch.used_at = new Date().toISOString();
+    if (status === 'voided') patch.void_reason = note ?? 'Voided by admin';
+
+    await supabase.from('redemptions').update(patch).eq('id', redemptionId);
+
+    setRedemptions((prev) =>
+      prev.map((r) => {
+        if (r.id !== redemptionId) return r;
         return {
-          ...redemption,
+          ...r,
           status,
-          usedAt: status === 'used' ? new Date().toISOString() : redemption.usedAt,
-          voidReason: status === 'voided' ? note || 'Voided by admin' : redemption.voidReason,
+          usedAt: status === 'used' ? (patch.used_at as string) : r.usedAt,
+          voidReason: status === 'voided' ? (patch.void_reason as string) : r.voidReason,
         };
       })
     );
   };
 
-  const adjustCustomerPoints = (customerId: string, points: number, reason: string) => {
-    const customer = customers.find((item) => item.id === customerId);
+  const adjustCustomerPoints = async (customerId: string, points: number, reason: string) => {
+    const customer = customers.find((c) => c.id === customerId);
     if (!customer || points === 0) return;
 
     const company = customer.linkedAccounts[0];
-    const transaction: Transaction = {
-      id: `adj-${Date.now()}`,
-      customerId,
-      companyId: company?.companyId ?? 'comp1',
-      companyName: company?.companyName ?? 'Sunshine Rewards Admin',
+    const txId = `adj-${Date.now()}`;
+    const txRow = {
+      id: txId,
+      customer_id: customerId,
+      company_id: company?.companyId ?? 'comp1',
+      company_name: company?.companyName ?? 'Sunshine Rewards Admin',
       type: 'adjustment',
       points,
       description: `Admin adjustment: ${reason || 'No reason provided'}`,
@@ -122,21 +220,24 @@ export function DemoStateProvider({ children }: { children: React.ReactNode }) {
       status: 'completed',
     };
 
-    setCustomers((currentCustomers) =>
-      currentCustomers.map((item) => (item.id === customerId ? updateCustomerPoints(item, points) : item))
-    );
-    setTransactions((currentTransactions) => [transaction, ...currentTransactions]);
+    const newPoints = Math.max(0, customer.points + points);
+
+    await Promise.all([
+      supabase.from('transactions').insert(txRow),
+      supabase.from('customers').update({ points: newPoints }).eq('id', customerId),
+    ]);
+
+    setCustomers((prev) => prev.map((c) => (c.id === customerId ? updateCustomerPoints(c, points) : c)));
+    setTransactions((prev) => [rowToTransaction(txRow as unknown as Record<string, unknown>), ...prev]);
   };
 
   const resetDemo = () => {
-    setCustomers(seededCustomers);
-    setTransactions(seededTransactions);
-    setRedemptions([]);
+    loadAll();
   };
 
   return (
     <DemoStateContext.Provider
-      value={{ customers, transactions, redemptions, demoCustomer, redeemReward, updateRedemptionStatus, adjustCustomerPoints, resetDemo }}
+      value={{ customers, transactions, redemptions, demoCustomer, loading, redeemReward, updateRedemptionStatus, adjustCustomerPoints, resetDemo }}
     >
       {children}
     </DemoStateContext.Provider>

@@ -34,8 +34,8 @@ export default function RedeemScreen() {
   const canAfford = demoCustomer.points >= reward.pointsCost;
   const previewBalance = Math.max(0, demoCustomer.points - reward.pointsCost);
 
-  const handleRedeem = () => {
-    const code = redeemReward(reward);
+  const handleRedeem = async () => {
+    const code = await redeemReward(reward);
     setRedemptionCode(code);
     setSuccessBalance(previewBalance);
     setRedeemed(true);

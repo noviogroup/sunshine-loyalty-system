@@ -47,10 +47,10 @@ export default function CustomerDetailScreen() {
 
   const closeModal = () => setActionModal(null);
 
-  const handleAdjustPoints = () => {
+  const handleAdjustPoints = async () => {
     const points = Number(pointsValue);
     if (!Number.isFinite(points) || points === 0) return;
-    adjustCustomerPoints(customer.id, points, reason);
+    await adjustCustomerPoints(customer.id, points, reason);
     setSuccessMessage(`${points > 0 ? '+' : ''}${points} points adjustment saved for ${customer.name}.`);
     closeModal();
   };
