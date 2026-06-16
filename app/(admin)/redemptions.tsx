@@ -11,7 +11,7 @@ const filters: Array<'all' | RedemptionStatus> = ['all', 'issued', 'used', 'void
 
 function statusVariant(status: RedemptionStatus) {
   if (status === 'used') return 'success';
-  if (status === 'voided' || status === 'expired') return 'danger';
+  if (status === 'voided' || status === 'expired') return 'error';
   return 'warning';
 }
 
@@ -102,7 +102,7 @@ export default function AdminRedemptionsScreen() {
                     <Text style={styles.rewardName}>{item.rewardTitle}</Text>
                     <Text style={styles.metaText}>{item.companyName} • -{item.pointsUsed.toLocaleString()} pts</Text>
                   </View>
-                  <Badge label={statusLabel(item.status)} variant={statusVariant(item.status) as any} size="sm" />
+                  <Badge label={statusLabel(item.status)} variant={statusVariant(item.status)} size="sm" />
                 </View>
 
                 <View style={styles.codeBox}>
