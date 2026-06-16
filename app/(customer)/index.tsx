@@ -11,7 +11,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, CompanyCard, TransactionItem, ProgressBar, Badge } from '../../src/components';
 import { colors, spacing, borderRadius, typography } from '../../src/theme';
-import { demoCustomer, companies, transactions } from '../../src/data/demo';
+import { companies } from '../../src/data/demo';
+import { useDemoState } from '../../src/context/DemoStateContext';
 
 const QUICK_ACTIONS = [
   { icon: 'diamond-outline' as const, label: 'Earn', route: '/(customer)/companies' },
@@ -29,6 +30,7 @@ function getGreeting(): string {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { demoCustomer, transactions } = useDemoState();
   const firstName = demoCustomer.name.split(' ')[0];
 
   const customerTransactions = transactions
@@ -45,12 +47,10 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Greeting */}
         <Text style={styles.greeting}>
           {getGreeting()}, {firstName}
         </Text>
 
-        {/* Points Balance Card */}
         <View style={styles.balanceCard}>
           <View style={styles.balanceHeader}>
             <View>
@@ -77,7 +77,6 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Quick Actions */}
         <View style={styles.quickActions}>
           {QUICK_ACTIONS.map((action) => (
             <TouchableOpacity
@@ -94,7 +93,6 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {/* Participating Companies */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Participating Companies</Text>
@@ -117,7 +115,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Recent Activity */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Activity</Text>
