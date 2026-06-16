@@ -16,6 +16,7 @@ The demo uses a premium, financial-services-friendly visual direction:
 - **Icons:** Expo Vector Icons, primarily `MaterialCommunityIcons`
 - **Brand mark:** Reusable `BrandMark` component using a Sunshine-style icon
 - **UI direction:** rounded cards, clean white space, gold highlights, charcoal text, and soft elevation
+- **Admin direction:** desktop-first SaaS dashboard with a left navigation rail, top utility bar, large content canvas, and compact status cards
 
 Key design files:
 
@@ -26,6 +27,7 @@ src/theme/spacing.ts
 src/components/BrandMark.tsx
 src/components/Button.tsx
 src/components/Card.tsx
+app/(admin)/_layout.tsx
 ```
 
 ## Demo Areas
@@ -48,7 +50,7 @@ Main demo path:
 Main demo path:
 
 1. Open **Admin Portal** from the landing screen.
-2. View KPI cards and recent transactions.
+2. Review the desktop-style left navigation, top utility bar, KPI cards, and recent transactions.
 3. Open **Customers**.
 4. Search or select a customer.
 5. View linked accounts, points balance, and recent transactions.
@@ -144,6 +146,6 @@ Do not add Focal, Sun Oil, Shell, gas station, petroleum, fuel rewards, pump, or
 1. Add real Sunshine Finance and Sunshine Insurance logo assets.
 2. Add a final production app icon and splash screen using approved brand assets.
 3. Add an onboarding/account-linking screen before the customer home page.
-4. Improve the admin layout for desktop with a left sidebar.
+4. Refine admin dashboard cards and tables for large desktop presentation screens.
 5. Add basic persistence for demo changes between refreshes.
 6. Add QA script for the full 5-7 minute meeting walkthrough.
