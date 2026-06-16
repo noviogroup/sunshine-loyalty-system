@@ -56,6 +56,24 @@ export interface Transaction {
   status: 'completed' | 'pending' | 'reversed' | 'expired';
 }
 
+export type RedemptionStatus = 'issued' | 'used' | 'voided' | 'expired';
+
+export interface Redemption {
+  id: string;
+  customerId: string;
+  customerName: string;
+  rewardId: string;
+  rewardTitle: string;
+  companyId: string;
+  companyName: string;
+  pointsUsed: number;
+  code: string;
+  status: RedemptionStatus;
+  issuedAt: string;
+  usedAt?: string;
+  voidReason?: string;
+}
+
 export interface Campaign {
   id: string;
   name: string;
