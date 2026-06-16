@@ -1,19 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, TransactionItem, FilterChip } from '../../src/components';
 import { colors, spacing, typography } from '../../src/theme';
-import { demoCustomer, transactions } from '../../src/data/demo';
+import { useDemoState } from '../../src/context/DemoStateContext';
 
 const FILTERS = ['All', 'Earned', 'Redeemed', 'Pending'];
 
 export default function ActivityScreen() {
   const [activeFilter, setActiveFilter] = useState('All');
+  const { demoCustomer, transactions } = useDemoState();
 
   const customerTransactions = useMemo(() => {
     const filtered = transactions
@@ -32,7 +28,7 @@ export default function ActivityScreen() {
       default:
         return filtered;
     }
-  }, [activeFilter]);
+  }, [activeFilter, demoCustomer.id, transactions]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -46,7 +42,6 @@ export default function ActivityScreen() {
           Track all your points earned, redeemed, and pending
         </Text>
 
-        {/* Filter Tabs */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -63,7 +58,6 @@ export default function ActivityScreen() {
           ))}
         </ScrollView>
 
-        {/* Transaction List */}
         {customerTransactions.length > 0 ? (
           <Card padding="none">
             {customerTransactions.map((txn, index) => (
@@ -98,52 +92,15 @@ export default function ActivityScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.lightGray,
-  },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xxl,
-  },
-  header: {
-    ...typography.h2,
-    color: colors.charcoal,
-    marginTop: spacing.md,
-  },
-  subtitle: {
-    ...typography.caption,
-    color: colors.mediumGray,
-    marginTop: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  filterScroll: {
-    marginBottom: spacing.md,
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.borderGray,
-    marginHorizontal: spacing.md,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: spacing.xxl,
-  },
-  emptyTitle: {
-    ...typography.bodyBold,
-    color: colors.charcoal,
-    marginBottom: spacing.xs,
-  },
-  emptySubtitle: {
-    ...typography.caption,
-    color: colors.mediumGray,
-    textAlign: 'center',
-  },
+  safe: { flex: 1, backgroundColor: colors.lightGray },
+  scroll: { flex: 1 },
+  content: { paddingHorizontal: spacing.md, paddingBottom: spacing.xxl },
+  header: { ...typography.h2, color: colors.charcoal, marginTop: spacing.md },
+  subtitle: { ...typography.caption, color: colors.mediumGray, marginTop: spacing.xs, marginBottom: spacing.md },
+  filterScroll: { marginBottom: spacing.md },
+  filterRow: { flexDirection: 'row', gap: spacing.sm },
+  divider: { height: 1, backgroundColor: colors.borderGray, marginHorizontal: spacing.md },
+  emptyState: { alignItems: 'center', paddingVertical: spacing.xxl },
+  emptyTitle: { ...typography.bodyBold, color: colors.charcoal, marginBottom: spacing.xs },
+  emptySubtitle: { ...typography.caption, color: colors.mediumGray, textAlign: 'center' },
 });
