@@ -72,8 +72,9 @@ Main demo path:
 4. Search or select a customer.
 5. View linked accounts, points balance, and recent transactions.
 6. Use **Adjust Points** to demonstrate an audited admin adjustment.
-7. Open **Redemptions** or click **Verify Codes** from the dashboard.
-8. Search the issued code and mark it used or voided.
+7. Use **Add Note** and **Send Offer** to demonstrate staff engagement actions.
+8. Open **Redemptions** or click **Verify Codes** from the dashboard.
+9. Search the issued code and mark it used or voided.
 
 ### Executive Dashboard
 
@@ -85,12 +86,14 @@ Main demo path:
 4. Review redemption operations insight.
 5. Review company performance for Sunshine Finance and Sunshine Insurance.
 
-## QA Checklist
+## Meeting Materials
 
-Use the included checklist before presenting:
+Use these files before presenting:
 
 ```txt
 DEMO_QA_CHECKLIST.md
+MEETING_DEMO_SCRIPT.md
+docs/SUNSHINE_PRODUCTION_BLUEPRINT.md
 ```
 
 ## Demo Data
