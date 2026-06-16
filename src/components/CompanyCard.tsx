@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -9,6 +9,7 @@ interface CompanyCardProps {
   name: string;
   description?: string;
   accentColor?: string;
+  imageUrl?: string;
   onPress?: () => void;
 }
 
@@ -19,15 +20,19 @@ function getCompanyIcon(name: string): keyof typeof MaterialCommunityIcons.glyph
   return 'domain';
 }
 
-const CompanyCard: React.FC<CompanyCardProps> = ({ name, description, accentColor = colors.primary, onPress }) => {
+const CompanyCard: React.FC<CompanyCardProps> = ({ name, description, accentColor = colors.primary, imageUrl, onPress }) => {
   const iconName = getCompanyIcon(name);
 
   const content = (
     <View style={styles.container}>
       <View style={[styles.accentStripe, { backgroundColor: accentColor }]} />
       <View style={styles.body}>
-        <View style={[styles.avatar, { backgroundColor: `${accentColor}18` }]}>
-          <MaterialCommunityIcons name={iconName} size={24} color={accentColor} />
+        <View style={[styles.logoWrap, { backgroundColor: `${accentColor}18` }]}>
+          {imageUrl ? (
+            <Image source={{ uri: imageUrl }} style={styles.logoImage} resizeMode="contain" />
+          ) : (
+            <MaterialCommunityIcons name={iconName} size={24} color={accentColor} />
+          )}
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.name} numberOfLines={1}>{name}</Text>
@@ -49,7 +54,8 @@ const styles = StyleSheet.create({
   container: { flexDirection: 'row', backgroundColor: colors.white, borderRadius: borderRadius.xl, overflow: 'hidden', borderWidth: 1, borderColor: colors.borderGray, shadowColor: colors.charcoal, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 2 },
   accentStripe: { width: 5 },
   body: { flex: 1, flexDirection: 'row', alignItems: 'center', padding: spacing.md, gap: spacing.sm + 4 },
-  avatar: { width: 48, height: 48, borderRadius: borderRadius.lg, alignItems: 'center', justifyContent: 'center' },
+  logoWrap: { width: 54, height: 54, borderRadius: borderRadius.lg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  logoImage: { width: 46, height: 46 },
   textContainer: { flex: 1 },
   name: { ...typography.bodyBold, color: colors.charcoal },
   description: { ...typography.caption, color: colors.mediumGray, marginTop: 2 },
