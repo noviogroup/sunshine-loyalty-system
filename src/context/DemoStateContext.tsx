@@ -3,15 +3,17 @@ import {
   customers as seededCustomers,
   transactions as seededTransactions,
 } from '../data/demo';
-import type { Customer, Reward, Transaction } from '../types';
+import type { Customer, Redemption, RedemptionStatus, Reward, Transaction } from '../types';
 
 const DEMO_CUSTOMER_ID = 'c1';
 
 interface DemoStateContextValue {
   customers: Customer[];
   transactions: Transaction[];
+  redemptions: Redemption[];
   demoCustomer: Customer;
   redeemReward: (reward: Reward) => string;
+  updateRedemptionStatus: (redemptionId: string, status: RedemptionStatus, note?: string) => void;
   adjustCustomerPoints: (customerId: string, points: number, reason: string) => void;
   resetDemo: () => void;
 }
@@ -20,21 +22,15 @@ const DemoStateContext = createContext<DemoStateContextValue | null>(null);
 
 function updateCustomerPoints(customer: Customer, delta: number): Customer {
   const points = Math.max(0, customer.points + delta);
-  const pointsToNextTier = customer.nextTier
-    ? Math.max(0, customer.pointsToNextTier - delta)
-    : 0;
-
-  return {
-    ...customer,
-    points,
-    pointsToNextTier,
-  };
+  const pointsToNextTier = customer.nextTier ? Math.max(0, customer.pointsToNextTier - delta) : 0;
+  return { ...customer, points, pointsToNextTier };
 }
 
 function buildRedemptionCode(companyName: string): string {
   const prefix = companyName.includes('Insurance') ? 'SHL-INS' : 'SHL-FIN';
-  const number = Math.floor(10000 + Math.random() * 90000);
-  return `${prefix}-${number}`;
+  const left = Math.random().toString(36).substring(2, 5).toUpperCase();
+  const right = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}-${left}-${right}`;
 }
 
 function buildReference(prefix: string): string {
@@ -45,6 +41,7 @@ function buildReference(prefix: string): string {
 export function DemoStateProvider({ children }: { children: React.ReactNode }) {
   const [customers, setCustomers] = useState<Customer[]>(seededCustomers);
   const [transactions, setTransactions] = useState<Transaction[]>(seededTransactions);
+  const [redemptions, setRedemptions] = useState<Redemption[]>([]);
 
   const demoCustomer = useMemo(
     () => customers.find((customer) => customer.id === DEMO_CUSTOMER_ID) ?? customers[0],
@@ -53,6 +50,8 @@ export function DemoStateProvider({ children }: { children: React.ReactNode }) {
 
   const redeemReward = (reward: Reward) => {
     const code = buildRedemptionCode(reward.companyName);
+    const issuedAt = new Date().toISOString();
+
     const transaction: Transaction = {
       id: `rdm-${Date.now()}`,
       customerId: demoCustomer.id,
@@ -62,20 +61,47 @@ export function DemoStateProvider({ children }: { children: React.ReactNode }) {
       points: -reward.pointsCost,
       description: `Redeemed: ${reward.title}`,
       reference: code,
-      date: new Date().toISOString().slice(0, 10),
+      date: issuedAt.slice(0, 10),
       status: 'completed',
+    };
+
+    const redemption: Redemption = {
+      id: `redemption-${Date.now()}`,
+      customerId: demoCustomer.id,
+      customerName: demoCustomer.name,
+      rewardId: reward.id,
+      rewardTitle: reward.title,
+      companyId: reward.companyId,
+      companyName: reward.companyName,
+      pointsUsed: reward.pointsCost,
+      code,
+      status: 'issued',
+      issuedAt,
     };
 
     setCustomers((currentCustomers) =>
       currentCustomers.map((customer) =>
-        customer.id === demoCustomer.id
-          ? updateCustomerPoints(customer, -reward.pointsCost)
-          : customer
+        customer.id === demoCustomer.id ? updateCustomerPoints(customer, -reward.pointsCost) : customer
       )
     );
     setTransactions((currentTransactions) => [transaction, ...currentTransactions]);
+    setRedemptions((currentRedemptions) => [redemption, ...currentRedemptions]);
 
     return code;
+  };
+
+  const updateRedemptionStatus = (redemptionId: string, status: RedemptionStatus, note?: string) => {
+    setRedemptions((currentRedemptions) =>
+      currentRedemptions.map((redemption) => {
+        if (redemption.id !== redemptionId) return redemption;
+        return {
+          ...redemption,
+          status,
+          usedAt: status === 'used' ? new Date().toISOString() : redemption.usedAt,
+          voidReason: status === 'voided' ? note || 'Voided by admin' : redemption.voidReason,
+        };
+      })
+    );
   };
 
   const adjustCustomerPoints = (customerId: string, points: number, reason: string) => {
@@ -97,9 +123,7 @@ export function DemoStateProvider({ children }: { children: React.ReactNode }) {
     };
 
     setCustomers((currentCustomers) =>
-      currentCustomers.map((item) =>
-        item.id === customerId ? updateCustomerPoints(item, points) : item
-      )
+      currentCustomers.map((item) => (item.id === customerId ? updateCustomerPoints(item, points) : item))
     );
     setTransactions((currentTransactions) => [transaction, ...currentTransactions]);
   };
@@ -107,18 +131,12 @@ export function DemoStateProvider({ children }: { children: React.ReactNode }) {
   const resetDemo = () => {
     setCustomers(seededCustomers);
     setTransactions(seededTransactions);
+    setRedemptions([]);
   };
 
   return (
     <DemoStateContext.Provider
-      value={{
-        customers,
-        transactions,
-        demoCustomer,
-        redeemReward,
-        adjustCustomerPoints,
-        resetDemo,
-      }}
+      value={{ customers, transactions, redemptions, demoCustomer, redeemReward, updateRedemptionStatus, adjustCustomerPoints, resetDemo }}
     >
       {children}
     </DemoStateContext.Provider>
@@ -127,8 +145,6 @@ export function DemoStateProvider({ children }: { children: React.ReactNode }) {
 
 export function useDemoState() {
   const context = useContext(DemoStateContext);
-  if (!context) {
-    throw new Error('useDemoState must be used within DemoStateProvider');
-  }
+  if (!context) throw new Error('useDemoState must be used within DemoStateProvider');
   return context;
 }
