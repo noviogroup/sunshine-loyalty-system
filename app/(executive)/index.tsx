@@ -1,16 +1,11 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  SafeAreaView,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, borderRadius } from '../../src/theme';
 import { KPICard, Card } from '../../src/components';
 import { executiveKPIs } from '../../src/data/demo';
 
+const BAR_MAX_HEIGHT = 120;
 const growthData = [
   { month: 'Feb', members: 760 },
   { month: 'Mar', members: 840 },
@@ -64,15 +59,18 @@ function GrowthChart() {
         <Ionicons name="trending-up" size={22} color={colors.success} />
       </View>
       <View style={styles.barRow}>
-        {growthData.map((item) => (
-          <View key={item.month} style={styles.barItem}>
-            <Text style={styles.barValue}>{item.members}</Text>
-            <View style={styles.barTrack}>
-              <View style={[styles.barFill, { height: `${Math.max(18, (item.members / maxMembers) * 100)}%` }]} />
+        {growthData.map((item) => {
+          const barHeight = Math.max(18, (item.members / maxMembers) * BAR_MAX_HEIGHT);
+          return (
+            <View key={item.month} style={styles.barItem}>
+              <Text style={styles.barValue}>{item.members}</Text>
+              <View style={styles.barTrack}>
+                <View style={[styles.barFill, { height: barHeight }]} />
+              </View>
+              <Text style={styles.barLabel}>{item.month}</Text>
             </View>
-            <Text style={styles.barLabel}>{item.month}</Text>
-          </View>
-        ))}
+          );
+        })}
       </View>
     </View>
   );
@@ -93,31 +91,19 @@ const compStyles = StyleSheet.create({
 export default function ExecutiveOverview() {
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
         <Text style={styles.pageTitle}>Executive Dashboard</Text>
         <Text style={styles.pageSubtitle}>Sunshine Loyalty Program Performance Overview</Text>
 
         <View style={styles.kpiGrid}>
           {executiveKPIs.map((kpi, index) => (
             <View key={index} style={styles.kpiCell}>
-              <KPICard
-                label={kpi.label}
-                value={kpi.value}
-                change={kpi.change}
-                changeLabel={kpi.changeLabel}
-                icon={kpi.icon as any}
-              />
+              <KPICard label={kpi.label} value={kpi.value} change={kpi.change} changeLabel={kpi.changeLabel} icon={kpi.icon as any} />
             </View>
           ))}
         </View>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Program Growth</Text>
-        </View>
+        <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Program Growth</Text></View>
 
         <Card style={styles.growthCard}>
           <View style={styles.growthHeader}>
@@ -137,10 +123,7 @@ export default function ExecutiveOverview() {
           <GrowthChart />
         </Card>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Company Performance</Text>
-        </View>
-
+        <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Company Performance</Text></View>
         <CompanyComparisonCards />
       </ScrollView>
     </SafeAreaView>
@@ -173,7 +156,7 @@ const styles = StyleSheet.create({
   barRow: { height: 180, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
   barItem: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
   barValue: { ...typography.smallBold, color: colors.charcoal, marginBottom: spacing.xs },
-  barTrack: { height: 120, width: 28, borderRadius: borderRadius.full, backgroundColor: colors.primaryLight, justifyContent: 'flex-end', overflow: 'hidden' },
+  barTrack: { height: BAR_MAX_HEIGHT, width: 28, borderRadius: borderRadius.full, backgroundColor: colors.primaryLight, justifyContent: 'flex-end', overflow: 'hidden' },
   barFill: { width: '100%', backgroundColor: colors.primary, borderRadius: borderRadius.full },
   barLabel: { ...typography.small, color: colors.mediumGray, marginTop: spacing.xs },
 });
