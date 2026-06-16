@@ -41,6 +41,7 @@ The demo now includes several concepts adapted from the QHC Loyalty setup:
 - Admin redemption verification screen
 - Staff-style mark-used / void actions
 - Shared in-session demo state for redemptions and transactions
+- Dashboard redemption queue summary
 
 These are still local demo features. They are intended to show the workflow before moving to a production Supabase implementation.
 
@@ -65,12 +66,12 @@ Main demo path:
 Main demo path:
 
 1. Open **Admin Portal** from the landing screen.
-2. Review the desktop-style left navigation, top utility bar, KPI cards, and recent transactions.
+2. Review the desktop-style left navigation, top utility bar, KPI cards, recent transactions, and redemption queue summary.
 3. Open **Customers**.
 4. Search or select a customer.
 5. View linked accounts, points balance, and recent transactions.
 6. Use **Adjust Points** to demonstrate an audited admin adjustment.
-7. Open **Redemptions**.
+7. Open **Redemptions** or click **Verify Codes** from the dashboard.
 8. Search the issued code and mark it used or voided.
 
 ### Executive Dashboard
@@ -81,6 +82,14 @@ Main demo path:
 2. Review top KPIs.
 3. Review program growth summary.
 4. Review company performance for Sunshine Finance and Sunshine Insurance.
+
+## QA Checklist
+
+Use the included checklist before presenting:
+
+```txt
+DEMO_QA_CHECKLIST.md
+```
 
 ## Demo Data
 
@@ -185,4 +194,4 @@ Do not add Focal, Sun Oil, Shell, gas station, petroleum, fuel rewards, pump, or
 4. Add an onboarding/account-linking screen before the customer home page.
 5. Refine admin dashboard cards and tables for large desktop presentation screens.
 6. Add basic persistence for demo changes between refreshes.
-7. Add QA script for the full 5-7 minute meeting walkthrough.
+7. Run the full QA checklist on web before presenting.
