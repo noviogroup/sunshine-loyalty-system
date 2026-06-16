@@ -21,9 +21,9 @@ export default function LandingScreen() {
         <View style={styles.buttonSection}>
           <TouchableOpacity
             style={styles.primaryButton}
-            onPress={() => router.push('/(customer)')}
+            onPress={() => router.push('/login')}
           >
-            <Text style={styles.primaryButtonText}>Customer App</Text>
+            <Text style={styles.primaryButtonText}>Start Customer Demo</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -84,6 +84,7 @@ const styles = StyleSheet.create({
   tagline: {
     ...typography.body,
     color: colors.mediumGray,
+    textAlign: 'center',
   },
   buttonSection: {
     width: '100%',
