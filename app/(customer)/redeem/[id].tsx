@@ -14,6 +14,7 @@ export default function RedeemScreen() {
   const { demoCustomer, redeemReward } = useDemoState();
   const [redeemed, setRedeemed] = useState(false);
   const [redemptionCode, setRedemptionCode] = useState('');
+  const [successBalance, setSuccessBalance] = useState<number | null>(null);
 
   const reward = rewards.find((r) => r.id === id);
 
@@ -31,11 +32,12 @@ export default function RedeemScreen() {
   }
 
   const canAfford = demoCustomer.points >= reward.pointsCost;
-  const remainingBalance = Math.max(0, demoCustomer.points - reward.pointsCost);
+  const previewBalance = Math.max(0, demoCustomer.points - reward.pointsCost);
 
   const handleRedeem = () => {
     const code = redeemReward(reward);
     setRedemptionCode(code);
+    setSuccessBalance(previewBalance);
     setRedeemed(true);
   };
 
@@ -47,9 +49,7 @@ export default function RedeemScreen() {
             <Ionicons name="checkmark" size={48} color={colors.white} />
           </View>
           <Text style={styles.successTitle}>Reward Redeemed!</Text>
-          <Text style={styles.successSubtitle}>
-            Your points balance and activity history have been updated for the demo.
-          </Text>
+          <Text style={styles.successSubtitle}>Your points balance and activity history have been updated for the demo.</Text>
 
           <Card style={styles.codeCard}>
             <Text style={styles.codeLabel}>Redemption Code</Text>
@@ -58,23 +58,14 @@ export default function RedeemScreen() {
           </Card>
 
           <Card style={styles.summaryCard}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Reward</Text>
-              <Text style={styles.summaryValue}>{reward.title}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Points Used</Text>
-              <Text style={styles.summaryValue}>{reward.pointsCost.toLocaleString()}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Updated Balance</Text>
-              <Text style={styles.summaryValue}>{remainingBalance.toLocaleString()}</Text>
-            </View>
+            <View style={styles.summaryRow}><Text style={styles.summaryLabel}>Reward</Text><Text style={styles.summaryValue}>{reward.title}</Text></View>
+            <View style={styles.summaryRow}><Text style={styles.summaryLabel}>Points Used</Text><Text style={styles.summaryValue}>{reward.pointsCost.toLocaleString()}</Text></View>
+            <View style={styles.summaryRow}><Text style={styles.summaryLabel}>Updated Balance</Text><Text style={styles.summaryValue}>{(successBalance ?? previewBalance).toLocaleString()}</Text></View>
           </Card>
 
           <Button title="View Activity" onPress={() => router.push('/(customer)/activity')} fullWidth />
           <View style={styles.buttonGap} />
-          <Button title="Go Home" onPress={() => router.push('/(customer)/')} variant="outline" fullWidth />
+          <Button title="Go Home" onPress={() => router.push('/(customer)')} variant="outline" fullWidth />
         </ScrollView>
       </SafeAreaView>
     );
@@ -96,50 +87,25 @@ export default function RedeemScreen() {
           <Text style={styles.detailsLabel}>Description</Text>
           <Text style={styles.detailsText}>{reward.description}</Text>
           <View style={styles.detailsDivider} />
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Category</Text>
-            <Text style={styles.detailValue}>{reward.category}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Expires</Text>
-            <Text style={styles.detailValue}>{reward.expiryDate}</Text>
-          </View>
+          <View style={styles.detailRow}><Text style={styles.detailLabel}>Category</Text><Text style={styles.detailValue}>{reward.category}</Text></View>
+          <View style={styles.detailRow}><Text style={styles.detailLabel}>Expires</Text><Text style={styles.detailValue}>{reward.expiryDate}</Text></View>
         </Card>
 
         <Card style={styles.balanceCard}>
-          <View style={styles.balanceRow}>
-            <Text style={styles.balanceLabel}>Your Balance</Text>
-            <Text style={styles.balanceValue}>{demoCustomer.points.toLocaleString()} pts</Text>
-          </View>
-          <View style={styles.balanceRow}>
-            <Text style={styles.balanceLabel}>Reward Cost</Text>
-            <Text style={[styles.balanceValue, { color: colors.error }]}>-{reward.pointsCost.toLocaleString()} pts</Text>
-          </View>
+          <View style={styles.balanceRow}><Text style={styles.balanceLabel}>Your Balance</Text><Text style={styles.balanceValue}>{demoCustomer.points.toLocaleString()} pts</Text></View>
+          <View style={styles.balanceRow}><Text style={styles.balanceLabel}>Reward Cost</Text><Text style={[styles.balanceValue, { color: colors.error }]}>-{reward.pointsCost.toLocaleString()} pts</Text></View>
           <View style={styles.balanceDivider} />
-          <View style={styles.balanceRow}>
-            <Text style={styles.balanceTotalLabel}>Remaining</Text>
-            <Text style={[styles.balanceTotalValue, { color: canAfford ? colors.success : colors.error }]}> 
-              {remainingBalance.toLocaleString()} pts
-            </Text>
-          </View>
+          <View style={styles.balanceRow}><Text style={styles.balanceTotalLabel}>Remaining</Text><Text style={[styles.balanceTotalValue, { color: canAfford ? colors.success : colors.error }]}>{previewBalance.toLocaleString()} pts</Text></View>
         </Card>
 
         {!canAfford && (
           <View style={styles.insufficientBanner}>
             <Ionicons name="information-circle" size={18} color={colors.error} />
-            <Text style={styles.insufficientText}>
-              You need {(reward.pointsCost - demoCustomer.points).toLocaleString()} more points to redeem this reward.
-            </Text>
+            <Text style={styles.insufficientText}>You need {(reward.pointsCost - demoCustomer.points).toLocaleString()} more points to redeem this reward.</Text>
           </View>
         )}
 
-        <Button
-          title={canAfford ? 'Redeem Reward' : 'Insufficient Points'}
-          onPress={handleRedeem}
-          disabled={!canAfford}
-          fullWidth
-          size="lg"
-        />
+        <Button title={canAfford ? 'Redeem Reward' : 'Insufficient Points'} onPress={handleRedeem} disabled={!canAfford} fullWidth size="lg" />
       </ScrollView>
     </SafeAreaView>
   );
