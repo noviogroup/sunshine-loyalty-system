@@ -25,6 +25,7 @@ export interface Company {
   name: string;
   description: string;
   logo: string;
+  imageUrl?: string;
   accentColor: string;
   isActive: boolean;
 }
