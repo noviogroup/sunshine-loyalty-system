@@ -8,6 +8,26 @@ The demo shows how Sunshine Holdings could offer customers one digital loyalty a
 
 This is a presentation demo, not a production implementation.
 
+## Design System Notes
+
+The demo uses a premium, financial-services-friendly visual direction:
+
+- **Font:** Inter via `@expo-google-fonts/inter`
+- **Icons:** Expo Vector Icons, primarily `MaterialCommunityIcons`
+- **Brand mark:** Reusable `BrandMark` component using a Sunshine-style icon
+- **UI direction:** rounded cards, clean white space, gold highlights, charcoal text, and soft elevation
+
+Key design files:
+
+```txt
+src/theme/colors.ts
+src/theme/typography.ts
+src/theme/spacing.ts
+src/components/BrandMark.tsx
+src/components/Button.tsx
+src/components/Card.tsx
+```
+
 ## Demo Areas
 
 ### Customer App
@@ -83,12 +103,21 @@ pnpm ios
 pnpm android
 ```
 
+If Expo raises a font package version mismatch, run:
+
+```bash
+pnpm expo install expo-font
+pnpm add @expo-google-fonts/inter
+```
+
 ## Current Stack
 
 - Expo
 - Expo Router
 - React Native
 - TypeScript
+- Inter font package
+- Expo Vector Icons
 - Local seeded demo data
 
 ## Current Demo Limitations
@@ -113,8 +142,8 @@ Do not add Focal, Sun Oil, Shell, gas station, petroleum, fuel rewards, pump, or
 ## Recommended Next Improvements
 
 1. Add real Sunshine Finance and Sunshine Insurance logo assets.
-2. Add an onboarding/account-linking screen before the customer home page.
-3. Improve the admin layout for desktop with a left sidebar.
-4. Add a campaign creation modal.
+2. Add a final production app icon and splash screen using approved brand assets.
+3. Add an onboarding/account-linking screen before the customer home page.
+4. Improve the admin layout for desktop with a left sidebar.
 5. Add basic persistence for demo changes between refreshes.
 6. Add QA script for the full 5-7 minute meeting walkthrough.
