@@ -18,6 +18,7 @@ export default function CustomerLayout() {
     >
       <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="home-variant-outline" size={size} color={color} /> }} />
       <Tabs.Screen name="offers" options={{ title: 'Offers', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="gift-outline" size={size} color={color} /> }} />
+      <Tabs.Screen name="card" options={{ title: 'Card', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="card-account-details-outline" size={size} color={color} /> }} />
       <Tabs.Screen name="companies" options={{ title: 'Companies', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="domain" size={size} color={color} /> }} />
       <Tabs.Screen name="activity" options={{ title: 'Activity', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="history" size={size} color={color} /> }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="account-circle-outline" size={size} color={color} /> }} />
