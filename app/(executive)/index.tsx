@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, ScrollView, SafeAreaView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, borderRadius } from '../../src/theme';
-import { KPICard, Card } from '../../src/components';
+import { KPICard, Card, Badge } from '../../src/components';
 import { executiveKPIs } from '../../src/data/demo';
+import { useDemoState } from '../../src/context/DemoStateContext';
 
 const BAR_MAX_HEIGHT = 120;
 const growthData = [
@@ -64,15 +65,53 @@ function GrowthChart() {
           return (
             <View key={item.month} style={styles.barItem}>
               <Text style={styles.barValue}>{item.members}</Text>
-              <View style={styles.barTrack}>
-                <View style={[styles.barFill, { height: barHeight }]} />
-              </View>
+              <View style={styles.barTrack}><View style={[styles.barFill, { height: barHeight }]} /></View>
               <Text style={styles.barLabel}>{item.month}</Text>
             </View>
           );
         })}
       </View>
     </View>
+  );
+}
+
+function RedemptionInsights() {
+  const { redemptions, transactions } = useDemoState();
+  const totalIssued = redemptions.length;
+  const used = redemptions.filter((item) => item.status === 'used').length;
+  const pending = redemptions.filter((item) => item.status === 'issued').length;
+  const voided = redemptions.filter((item) => item.status === 'voided').length;
+  const pointsRedeemed = transactions.filter((txn) => txn.type === 'redeemed').reduce((sum, txn) => sum + Math.abs(txn.points), 0);
+  const redemptionRate = totalIssued > 0 ? Math.round((used / totalIssued) * 100) : 0;
+
+  return (
+    <Card style={styles.insightsCard}>
+      <View style={styles.insightsHeader}>
+        <View>
+          <Text style={styles.insightsTitle}>Redemption Operations</Text>
+          <Text style={styles.insightsSubtitle}>Live demo session view of issued and verified reward codes</Text>
+        </View>
+        <Badge label={totalIssued > 0 ? 'Live Demo' : 'Awaiting Codes'} variant={totalIssued > 0 ? 'success' : 'default'} size="sm" />
+      </View>
+
+      <View style={styles.insightGrid}>
+        <View style={styles.insightCell}><Text style={styles.insightValue}>{totalIssued}</Text><Text style={styles.insightLabel}>Codes Issued</Text></View>
+        <View style={styles.insightCell}><Text style={styles.insightValue}>{used}</Text><Text style={styles.insightLabel}>Used</Text></View>
+        <View style={styles.insightCell}><Text style={styles.insightValue}>{pending}</Text><Text style={styles.insightLabel}>Awaiting Use</Text></View>
+        <View style={styles.insightCell}><Text style={styles.insightValue}>{voided}</Text><Text style={styles.insightLabel}>Voided</Text></View>
+      </View>
+
+      <View style={styles.redemptionRateBox}>
+        <View>
+          <Text style={styles.rateLabel}>Demo Redemption Verification Rate</Text>
+          <Text style={styles.rateValue}>{redemptionRate}%</Text>
+        </View>
+        <View style={styles.rateSide}>
+          <Text style={styles.rateSideValue}>{pointsRedeemed.toLocaleString()}</Text>
+          <Text style={styles.rateSideLabel}>Points redeemed in ledger</Text>
+        </View>
+      </View>
+    </Card>
   );
 }
 
@@ -123,6 +162,9 @@ export default function ExecutiveOverview() {
           <GrowthChart />
         </Card>
 
+        <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Redemption Insights</Text></View>
+        <RedemptionInsights />
+
         <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Company Performance</Text></View>
         <CompanyComparisonCards />
       </ScrollView>
@@ -159,4 +201,18 @@ const styles = StyleSheet.create({
   barTrack: { height: BAR_MAX_HEIGHT, width: 28, borderRadius: borderRadius.full, backgroundColor: colors.primaryLight, justifyContent: 'flex-end', overflow: 'hidden' },
   barFill: { width: '100%', backgroundColor: colors.primary, borderRadius: borderRadius.full },
   barLabel: { ...typography.small, color: colors.mediumGray, marginTop: spacing.xs },
+  insightsCard: { marginBottom: spacing.lg },
+  insightsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.md, marginBottom: spacing.md },
+  insightsTitle: { ...typography.bodyBold, color: colors.charcoal },
+  insightsSubtitle: { ...typography.caption, color: colors.mediumGray, marginTop: 2 },
+  insightGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
+  insightCell: { flexGrow: 1, flexBasis: '22%', minWidth: 120, backgroundColor: colors.lightGray, borderRadius: borderRadius.lg, padding: spacing.md, alignItems: 'center' },
+  insightValue: { ...typography.h2, color: colors.charcoal },
+  insightLabel: { ...typography.small, color: colors.mediumGray, textAlign: 'center', marginTop: 2 },
+  redemptionRateBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: colors.primaryLight, borderRadius: borderRadius.lg, padding: spacing.md, gap: spacing.md },
+  rateLabel: { ...typography.captionBold, color: colors.primaryDark },
+  rateValue: { ...typography.h1, color: colors.primaryDark, marginTop: 2 },
+  rateSide: { alignItems: 'flex-end' },
+  rateSideValue: { ...typography.h3, color: colors.charcoal },
+  rateSideLabel: { ...typography.small, color: colors.mediumGray, marginTop: 2, textAlign: 'right' },
 });
