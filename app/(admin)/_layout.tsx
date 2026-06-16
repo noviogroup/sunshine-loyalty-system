@@ -6,7 +6,7 @@ import { BrandMark } from '../../src/components';
 
 type NavItem = {
   label: string;
-  route: '/(admin)' | '/(admin)/customers' | '/(admin)/campaigns' | '/(admin)/transactions';
+  route: '/(admin)' | '/(admin)/customers' | '/(admin)/campaigns' | '/(admin)/redemptions' | '/(admin)/transactions';
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
   match: string;
 };
@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', route: '/(admin)', icon: 'view-dashboard-outline', match: '/' },
   { label: 'Customers', route: '/(admin)/customers', icon: 'account-group-outline', match: 'customers' },
   { label: 'Campaigns', route: '/(admin)/campaigns', icon: 'bullhorn-outline', match: 'campaigns' },
+  { label: 'Redemptions', route: '/(admin)/redemptions', icon: 'ticket-confirmation-outline', match: 'redemptions' },
   { label: 'Transactions', route: '/(admin)/transactions', icon: 'swap-horizontal-circle-outline', match: 'transactions' },
 ];
 
@@ -81,12 +82,12 @@ function TopBar({ compact = false }: { compact?: boolean }) {
     <View style={styles.topBar}>
       <View>
         <Text style={styles.topBarTitle}>Operations Console</Text>
-        <Text style={styles.topBarSubtitle}>Manage customers, rewards, campaigns, and activity.</Text>
+        <Text style={styles.topBarSubtitle}>Manage customers, rewards, campaigns, redemptions, and activity.</Text>
       </View>
       <View style={styles.topActions}>
         <View style={styles.searchPill}>
           <MaterialCommunityIcons name="magnify" size={18} color={colors.mediumGray} />
-          <Text style={styles.searchText}>{compact ? 'Search' : 'Search customers or transactions'}</Text>
+          <Text style={styles.searchText}>{compact ? 'Search' : 'Search customers, codes, or transactions'}</Text>
         </View>
         <View style={styles.profileBadge}>
           <MaterialCommunityIcons name="account-tie-outline" size={18} color={colors.charcoal} />
