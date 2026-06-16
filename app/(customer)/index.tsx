@@ -9,9 +9,9 @@ import { companies } from '../../src/data/demo';
 import { useDemoState } from '../../src/context/DemoStateContext';
 
 const QUICK_ACTIONS = [
-  { icon: 'diamond-outline' as const, label: 'Earn', route: '/(customer)/companies' },
   { icon: 'gift-outline' as const, label: 'Redeem', route: '/(customer)/offers' },
-  { icon: 'pricetag-outline' as const, label: 'Offers', route: '/(customer)/offers' },
+  { icon: 'card-outline' as const, label: 'My Card', route: '/(customer)/card' },
+  { icon: 'business-outline' as const, label: 'Companies', route: '/(customer)/companies' },
   { icon: 'time-outline' as const, label: 'Activity', route: '/(customer)/activity' },
 ];
 
@@ -115,9 +115,9 @@ const styles = StyleSheet.create({
   progressSection: { marginTop: spacing.md },
   progressText: { ...typography.small, color: 'rgba(255,255,255,0.8)', marginTop: spacing.sm },
   quickActions: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: spacing.lg },
-  quickActionItem: { alignItems: 'center', gap: spacing.sm },
+  quickActionItem: { alignItems: 'center', gap: spacing.sm, flex: 1 },
   quickActionCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
-  quickActionLabel: { ...typography.smallBold, color: colors.charcoal },
+  quickActionLabel: { ...typography.smallBold, color: colors.charcoal, textAlign: 'center' },
   section: { marginBottom: spacing.lg },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm + 4 },
   sectionTitle: { ...typography.h3, color: colors.charcoal },
