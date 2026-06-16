@@ -42,6 +42,7 @@ The demo now includes several concepts adapted from the QHC Loyalty setup:
 - Staff-style mark-used / void actions
 - Shared in-session demo state for redemptions and transactions
 - Dashboard redemption queue summary
+- Executive redemption operations insight
 
 These are still local demo features. They are intended to show the workflow before moving to a production Supabase implementation.
 
@@ -81,7 +82,8 @@ Main demo path:
 1. Open **Executive Dashboard** from the landing screen.
 2. Review top KPIs.
 3. Review program growth summary.
-4. Review company performance for Sunshine Finance and Sunshine Insurance.
+4. Review redemption operations insight.
+5. Review company performance for Sunshine Finance and Sunshine Insurance.
 
 ## QA Checklist
 
@@ -168,7 +170,13 @@ The following are intentionally mocked or not yet production-ready:
 
 ## Production Direction
 
-For a production Sunshine MVP, the QHC Loyalty architecture should be adapted into a multi-company financial-services model:
+For a production Sunshine MVP, the QHC Loyalty architecture should be adapted into a multi-company financial-services model. See:
+
+```txt
+docs/SUNSHINE_PRODUCTION_BLUEPRINT.md
+```
+
+Recommended foundation:
 
 - Supabase Auth
 - Profiles table
